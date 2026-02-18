@@ -227,6 +227,8 @@ struct SysBarPanel: View {
         case "Pictures": return "photo"
         case "Music": return "music.note"
         case "Movies": return "film"
+        case "System & Other": return "gearshape"
+        case "Trash": return "trash"
         default: return "folder"
         }
     }

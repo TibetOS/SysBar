@@ -9,8 +9,11 @@ struct DiskEntry: Sendable, Identifiable {
 
 actor DiskAnalyzer {
     func analyze() -> [DiskEntry] {
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        let directories: [(String, URL)] = [
+        let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser
+
+        // Known visible directories
+        var directories: [(String, URL)] = [
             ("Desktop", home.appending(path: "Desktop")),
             ("Documents", home.appending(path: "Documents")),
             ("Downloads", home.appending(path: "Downloads")),
@@ -21,12 +24,42 @@ actor DiskAnalyzer {
             ("Applications", URL(fileURLWithPath: "/Applications")),
         ]
 
+        // Discover hidden directories in home (e.g. .docker, .cache, .Trash)
+        let knownNames = Set(directories.map { $0.1.lastPathComponent })
+        if let contents = try? fm.contentsOfDirectory(
+            at: home,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: []
+        ) {
+            for url in contents {
+                let name = url.lastPathComponent
+                if name.hasPrefix("."), !knownNames.contains(name) {
+                    let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+                    if isDir {
+                        let displayName = name.dropFirst().prefix(1).uppercased()
+                            + name.dropFirst().dropFirst()
+                        directories.append((String(displayName), url))
+                    }
+                }
+            }
+        }
+
         var entries: [DiskEntry] = []
+        var scannedTotal: UInt64 = 0
+
         for (name, url) in directories {
             let size = directorySize(url)
-            if size > 0 {
+            if size > 10_000_000 { // Only show dirs > 10 MB
                 entries.append(DiskEntry(name: name, path: url.path, size: size))
             }
+            scannedTotal += size
+        }
+
+        // Calculate "System & Other" from total used disk
+        let totalUsed = totalDiskUsed()
+        if totalUsed > scannedTotal {
+            let other = totalUsed - scannedTotal
+            entries.append(DiskEntry(name: "System & Other", path: "/", size: other))
         }
 
         entries.sort { $0.size > $1.size }
@@ -39,7 +72,7 @@ actor DiskAnalyzer {
         guard let enumerator = fm.enumerator(
             at: url,
             includingPropertiesForKeys: keys,
-            options: [.skipsHiddenFiles],
+            options: [],
             errorHandler: nil
         ) else {
             return 0
@@ -56,5 +89,14 @@ actor DiskAnalyzer {
             }
         }
         return total
+    }
+
+    private func totalDiskUsed() -> UInt64 {
+        var stat = statvfs()
+        guard statvfs("/", &stat) == 0 else { return 0 }
+        let blockSize = UInt64(stat.f_frsize)
+        let total = UInt64(stat.f_blocks) * blockSize
+        let free = UInt64(stat.f_bavail) * blockSize
+        return total - free
     }
 }
