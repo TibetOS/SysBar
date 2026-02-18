@@ -1,5 +1,4 @@
 import SwiftUI
-import ServiceManagement
 
 struct SysBarPanel: View {
     let state: AppState
@@ -23,11 +22,11 @@ struct SysBarPanel: View {
                 Divider()
             }
 
+            openSysBarButton
             floatingToggle
-            launchAtLoginToggle
-            fullDiskAccessButton
             checkForUpdatesButton
             Divider()
+            settingsButton
             aboutButton
             quitButton
         }
@@ -109,9 +108,7 @@ struct SysBarPanel: View {
     }
 
     private func coreColor(for usage: Double) -> Color {
-        if usage > 0.85 { return .red }
-        if usage > 0.60 { return .orange }
-        if usage > 0.30 { return .yellow }
+        if usage > 0.30 { return MetricColor.usage(usage) }
         return .green
     }
 
@@ -233,9 +230,7 @@ struct SysBarPanel: View {
     }
 
     private func batteryColor(_ level: Int) -> Color {
-        if level <= 15 { return .red }
-        if level <= 30 { return .orange }
-        return .green
+        MetricColor.battery(level)
     }
 
     // MARK: - Actions
@@ -258,39 +253,16 @@ struct SysBarPanel: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var launchAtLoginToggle: some View {
-        let enabled = SMAppService.mainApp.status == .enabled
-        return Button(action: {
-            do {
-                if enabled {
-                    try SMAppService.mainApp.unregister()
-                } else {
-                    try SMAppService.mainApp.register()
-                }
-            } catch {
-                // Registration can fail if app isn't in /Applications
-            }
-        }) {
-            HStack {
-                Image(systemName: enabled ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(enabled ? .green : .secondary)
-                Text("Launch at Login")
-            }
-        }
-        .buttonStyle(.plain)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var fullDiskAccessButton: some View {
+    private var openSysBarButton: some View {
         Button(action: {
-            NSWorkspace.shared.open(
-                URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!
-            )
+            state.openDiskBreakdown()
+            dismiss()
         }) {
             HStack {
-                Image(systemName: "lock.shield")
-                Text("Grant Full Disk Access...")
+                Image(systemName: "gauge.with.dots.needle.33percent")
+                Text("Open SysBar")
             }
+            .fontWeight(.medium)
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -313,6 +285,21 @@ struct SysBarPanel: View {
         }
         .buttonStyle(.plain)
         .disabled(updateChecker.isChecking)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var settingsButton: some View {
+        Button(action: {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            NSApp.activate(ignoringOtherApps: true)
+            dismiss()
+        }) {
+            HStack {
+                Image(systemName: "gearshape")
+                Text("Settings...")
+            }
+        }
+        .buttonStyle(.plain)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 

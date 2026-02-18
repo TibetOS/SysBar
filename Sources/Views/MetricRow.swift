@@ -22,7 +22,7 @@ struct MetricRow: View {
                         .fill(.quaternary)
 
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(barColor(for: value))
+                        .fill(MetricColor.usage(value))
                         .frame(
                             width: geo.size.width
                                 * min(max(CGFloat(value), 0), 1)
@@ -39,9 +39,4 @@ struct MetricRow: View {
         .frame(height: 20)
     }
 
-    private func barColor(for value: Double) -> Color {
-        if value > 0.85 { return .red }
-        if value > 0.60 { return .orange }
-        return .green
-    }
 }

@@ -34,11 +34,10 @@ struct FloatingView: View {
     // MARK: - Header
 
     private var headerRow: some View {
-        HStack(spacing: 4) {
-            Text("SysBar")
-                .font(.system(state.isFloatingExpanded ? .caption : .caption2, weight: .semibold))
-            Text("·")
-                .foregroundStyle(.quaternary)
+        let font: Font = .system(state.isFloatingExpanded ? .caption : .caption2)
+        return HStack(spacing: 4) {
+            Text("SysBar").font(font.weight(.semibold))
+            Text("·").foregroundStyle(.quaternary)
             Text("up \(uptime)")
                 .font(.system(state.isFloatingExpanded ? .caption : .caption2, design: .monospaced))
                 .foregroundStyle(.tertiary)
@@ -80,12 +79,15 @@ struct FloatingView: View {
         }
         .frame(height: 16)
 
-        metricBar("RAM", value: snap.ram.usagePercent,
-                  detail: "\(MetricFormatter.bytes(snap.ram.used)) / \(MetricFormatter.bytes(snap.ram.total))")
-        metricBar("GPU", value: snap.gpu.utilization,
-                  detail: MetricFormatter.percent(snap.gpu.utilization))
-        metricBar("Disk", value: snap.disk.usagePercent,
-                  detail: "\(MetricFormatter.bytes(snap.disk.used)) / \(MetricFormatter.bytes(snap.disk.total))")
+        usageBar("RAM", value: snap.ram.usagePercent,
+                 detail: "\(MetricFormatter.bytes(snap.ram.used)) / \(MetricFormatter.bytes(snap.ram.total))",
+                 compact: true)
+        usageBar("GPU", value: snap.gpu.utilization,
+                 detail: MetricFormatter.percent(snap.gpu.utilization),
+                 compact: true)
+        usageBar("Disk", value: snap.disk.usagePercent,
+                 detail: "\(MetricFormatter.bytes(snap.disk.used)) / \(MetricFormatter.bytes(snap.disk.total))",
+                 compact: true)
 
         Divider().padding(.vertical, 1)
         networkBatteryRow(snap)
@@ -95,35 +97,27 @@ struct FloatingView: View {
 
     @ViewBuilder
     private func expandedContent(_ snap: SystemSnapshot) -> some View {
-        // System Info
         systemInfoSection(snap.info)
         Divider().padding(.vertical, 2)
 
-        // CPU
         expandedCPUSection(snap.cpu)
         Divider().padding(.vertical, 2)
 
-        // RAM
         expandedRAMSection(snap.ram)
         Divider().padding(.vertical, 2)
 
-        // GPU + Disk
-        expandedMetricBar("GPU", value: snap.gpu.utilization,
-                          detail: MetricFormatter.percent(snap.gpu.utilization))
-        expandedMetricBar("Disk", value: snap.disk.usagePercent,
-                          detail: "\(MetricFormatter.bytes(snap.disk.used)) / \(MetricFormatter.bytes(snap.disk.total))")
+        usageBar("GPU", value: snap.gpu.utilization,
+                 detail: MetricFormatter.percent(snap.gpu.utilization))
+        usageBar("Disk", value: snap.disk.usagePercent,
+                 detail: "\(MetricFormatter.bytes(snap.disk.used)) / \(MetricFormatter.bytes(snap.disk.total))")
 
-        // Disk Breakdown
         if !state.diskBreakdown.isEmpty || state.isDiskScanning {
             diskBreakdownSection
         }
 
         Divider().padding(.vertical, 2)
-
-        // Network
         expandedNetworkSection(snap.network)
 
-        // Battery
         if snap.battery.hasBattery {
             Divider().padding(.vertical, 2)
             expandedBatterySection(snap.battery)
@@ -194,7 +188,7 @@ struct FloatingView: View {
             ForEach(Array(cores.enumerated()), id: \.offset) { idx, usage in
                 VStack(spacing: 1) {
                     RoundedRectangle(cornerRadius: 2)
-                        .fill(coreColor(usage))
+                        .fill(MetricColor.usage(usage))
                         .frame(width: 12, height: 12)
                     Text("\(idx)")
                         .font(.system(size: 7, design: .monospaced))
@@ -206,19 +200,12 @@ struct FloatingView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func coreColor(_ usage: Double) -> Color {
-        if usage > 0.85 { return .red }
-        if usage > 0.60 { return .orange }
-        if usage > 0.30 { return .yellow }
-        return .green
-    }
-
     // MARK: - Expanded RAM
 
     @ViewBuilder
     private func expandedRAMSection(_ ram: RAMMetrics) -> some View {
-        expandedMetricBar("RAM", value: ram.usagePercent,
-                          detail: "\(MetricFormatter.bytes(ram.used)) / \(MetricFormatter.bytes(ram.total))")
+        usageBar("RAM", value: ram.usagePercent,
+                 detail: "\(MetricFormatter.bytes(ram.used)) / \(MetricFormatter.bytes(ram.total))")
 
         HStack(spacing: 12) {
             ramDetail("App", value: ram.appMemory, color: .blue)
@@ -230,9 +217,7 @@ struct FloatingView: View {
 
     private func ramDetail(_ label: String, value: UInt64, color: Color) -> some View {
         HStack(spacing: 3) {
-            Circle()
-                .fill(color)
-                .frame(width: 6, height: 6)
+            Circle().fill(color).frame(width: 6, height: 6)
             Text("\(label): \(MetricFormatter.bytes(value))")
                 .font(.system(.caption2, design: .monospaced))
                 .foregroundStyle(.secondary)
@@ -244,20 +229,8 @@ struct FloatingView: View {
     private func expandedNetworkSection(_ net: NetworkMetrics) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 12) {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.up")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(.blue)
-                    Text(MetricFormatter.speed(net.bytesPerSecUp))
-                        .font(.system(.caption, design: .monospaced))
-                }
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.down")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(.green)
-                    Text(MetricFormatter.speed(net.bytesPerSecDown))
-                        .font(.system(.caption, design: .monospaced))
-                }
+                networkSpeed("arrow.up", value: net.bytesPerSecUp, color: .blue)
+                networkSpeed("arrow.down", value: net.bytesPerSecDown, color: .green)
                 Spacer()
             }
             .frame(height: 18)
@@ -273,24 +246,30 @@ struct FloatingView: View {
         }
     }
 
+    private func networkSpeed(_ icon: String, value: UInt64, color: Color) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 8, weight: .bold))
+                .foregroundStyle(color)
+            Text(MetricFormatter.speed(value))
+                .font(.system(.caption, design: .monospaced))
+        }
+    }
+
     // MARK: - Expanded Battery
 
     private func expandedBatterySection(_ battery: BatteryMetrics) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 8) {
                 Image(systemName: battery.isCharging ? "battery.100percent.bolt" : "battery.100percent")
-                    .foregroundStyle(batteryColor(battery.level))
+                    .foregroundStyle(MetricColor.battery(battery.level))
                 Text("\(battery.level)%")
                     .font(.system(.caption, design: .monospaced, weight: .medium))
 
                 if battery.isCharging {
-                    Text("Charging")
-                        .font(.caption)
-                        .foregroundStyle(.yellow)
+                    Text("Charging").font(.caption).foregroundStyle(.yellow)
                 } else if battery.isPluggedIn {
-                    Text("Plugged In")
-                        .font(.caption)
-                        .foregroundStyle(.green)
+                    Text("Plugged In").font(.caption).foregroundStyle(.green)
                 }
                 Spacer()
             }
@@ -360,7 +339,7 @@ struct FloatingView: View {
         }
     }
 
-    // MARK: - Shared Network/Battery (compact)
+    // MARK: - Compact Network/Battery
 
     private func networkBatteryRow(_ snap: SystemSnapshot) -> some View {
         HStack(spacing: 12) {
@@ -390,7 +369,7 @@ struct FloatingView: View {
                         .font(.system(.caption2, design: .monospaced))
                     Image(systemName: "battery.100percent")
                         .font(.system(size: 9))
-                        .foregroundStyle(batteryColor(snap.battery.level))
+                        .foregroundStyle(MetricColor.battery(snap.battery.level))
                 }
             }
         }
@@ -407,71 +386,42 @@ struct FloatingView: View {
         }
     }
 
-    // MARK: - Metric Bars
+    // MARK: - Shared Usage Bar
 
-    private func metricBar(_ label: String, value: Double, detail: String) -> some View {
-        HStack(spacing: 6) {
+    private func usageBar(_ label: String, value: Double, detail: String, compact: Bool = false) -> some View {
+        let labelWidth: CGFloat = compact ? 28 : 36
+        let barHeight: CGFloat = compact ? 6 : 8
+        let spacing: CGFloat = compact ? 6 : 8
+        let labelFont: Font = compact
+            ? .system(.caption2, design: .monospaced)
+            : .system(.caption, design: .monospaced, weight: .medium)
+        let detailFont: Font = compact
+            ? .system(.caption2, design: .monospaced)
+            : .system(.caption, design: .monospaced)
+
+        return HStack(spacing: spacing) {
             Text(label)
-                .font(.system(.caption2, design: .monospaced))
-                .frame(width: 28, alignment: .leading)
+                .font(labelFont)
+                .frame(width: labelWidth, alignment: .leading)
                 .foregroundStyle(.secondary)
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2)
+                    RoundedRectangle(cornerRadius: compact ? 2 : 3)
                         .fill(.quaternary)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(barColor(value))
+                    RoundedRectangle(cornerRadius: compact ? 2 : 3)
+                        .fill(MetricColor.usage(value))
                         .frame(width: geo.size.width * min(max(CGFloat(value), 0), 1))
                 }
             }
-            .frame(height: 6)
+            .frame(height: barHeight)
 
             Text(detail)
-                .font(.system(.caption2, design: .monospaced))
+                .font(detailFont)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .fixedSize()
         }
-        .frame(height: 16)
-    }
-
-    private func expandedMetricBar(_ label: String, value: Double, detail: String) -> some View {
-        HStack(spacing: 8) {
-            Text(label)
-                .font(.system(.caption, design: .monospaced, weight: .medium))
-                .frame(width: 36, alignment: .leading)
-                .foregroundStyle(.secondary)
-
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(.quaternary)
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(barColor(value))
-                        .frame(width: geo.size.width * min(max(CGFloat(value), 0), 1))
-                }
-            }
-            .frame(height: 8)
-
-            Text(detail)
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .fixedSize()
-        }
-        .frame(height: 20)
-    }
-
-    private func barColor(_ value: Double) -> Color {
-        if value > 0.85 { return .red }
-        if value > 0.60 { return .orange }
-        return .green
-    }
-
-    private func batteryColor(_ level: Int) -> Color {
-        if level <= 15 { return .red }
-        if level <= 30 { return .orange }
-        return .green
+        .frame(height: compact ? 16 : 20)
     }
 }

@@ -3,7 +3,6 @@ import SwiftUI
 @main
 struct SysBarApp: App {
     @State private var appState = AppState()
-    @State private var updateChecker = UpdateChecker()
 
     var body: some Scene {
         MenuBarExtra {
@@ -18,6 +17,10 @@ struct SysBarApp: App {
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)
+
+        Settings {
+            SettingsView()
+        }
     }
 
     init() {

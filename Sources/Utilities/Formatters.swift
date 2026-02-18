@@ -1,4 +1,19 @@
 import Foundation
+import SwiftUI
+
+enum MetricColor {
+    static func usage(_ value: Double) -> Color {
+        if value > 0.85 { return .red }
+        if value > 0.60 { return .orange }
+        return .green
+    }
+
+    static func battery(_ level: Int) -> Color {
+        if level <= 15 { return .red }
+        if level <= 30 { return .orange }
+        return .green
+    }
+}
 
 enum MetricFormatter {
     static func bytes(_ value: UInt64) -> String {

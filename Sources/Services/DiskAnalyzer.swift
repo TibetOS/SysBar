@@ -12,15 +12,11 @@ actor DiskAnalyzer {
         let fm = FileManager.default
         let home = fm.homeDirectoryForCurrentUser
 
-        // Known visible directories
+        // Only scan directories that don't trigger TCC prompts.
+        // Protected folders (Desktop, Documents, Downloads, Pictures, Music, Movies)
+        // are captured in "System & Other" via statvfs total.
         var directories: [(String, URL)] = [
-            ("Desktop", home.appending(path: "Desktop")),
-            ("Documents", home.appending(path: "Documents")),
-            ("Downloads", home.appending(path: "Downloads")),
             ("Library", home.appending(path: "Library")),
-            ("Music", home.appending(path: "Music")),
-            ("Movies", home.appending(path: "Movies")),
-            ("Pictures", home.appending(path: "Pictures")),
             ("Applications", URL(fileURLWithPath: "/Applications")),
         ]
 
