@@ -3,6 +3,8 @@ import SwiftUI
 struct SysBarPanel: View {
     let state: AppState
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openWindow) private var openWindow
+    @State private var updateChecker = UpdateChecker()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -21,6 +23,9 @@ struct SysBarPanel: View {
             }
 
             floatingToggle
+            checkForUpdatesButton
+            Divider()
+            aboutButton
             quitButton
         }
         .padding(12)
@@ -34,7 +39,7 @@ struct SysBarPanel: View {
             Text("SysBar")
                 .font(.headline)
             Spacer()
-            Text("v0.1.0")
+            Text("v\(UpdateChecker.currentVersion)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -244,6 +249,40 @@ struct SysBarPanel: View {
                 Text(state.isFloatingVisible
                      ? "Hide Floating Panel"
                      : "Show Floating Panel")
+            }
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var checkForUpdatesButton: some View {
+        Button(action: {
+            updateChecker.checkForUpdates()
+        }) {
+            HStack {
+                if updateChecker.isChecking {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .frame(width: 16)
+                } else {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                }
+                Text(updateChecker.isChecking ? "Checking..." : "Check for Updates...")
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(updateChecker.isChecking)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var aboutButton: some View {
+        Button(action: {
+            openWindow(id: "about")
+            dismiss()
+        }) {
+            HStack {
+                Image(systemName: "info.circle")
+                Text("About SysBar")
             }
         }
         .buttonStyle(.plain)

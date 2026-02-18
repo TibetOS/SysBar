@@ -4,3 +4,5 @@
 *.xcodeproj
 xcuserdata/
 DerivedData/
+build/
+firebase-debug.log
