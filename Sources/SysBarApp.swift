@@ -2,14 +2,18 @@ import SwiftUI
 
 @main
 struct SysBarApp: App {
+    @State private var appState = AppState()
+
     var body: some Scene {
-        MenuBarExtra("SysBar", systemImage: "chart.bar.fill") {
-            Text("SysBar - Loading...")
-            Divider()
-            Button("Quit") {
-                NSApplication.shared.terminate(nil)
-            }
+        MenuBarExtra {
+            SysBarPanel(state: appState)
+        } label: {
+            SparkLine(values: appState.cpuHistory)
         }
         .menuBarExtraStyle(.window)
+    }
+
+    init() {
+        NSApplication.shared.setActivationPolicy(.accessory)
     }
 }

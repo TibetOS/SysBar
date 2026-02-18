@@ -9,7 +9,12 @@ final class AppState {
     private var refreshTask: Task<Void, Never>?
     private let maxHistorySize = 20
 
+    init() {
+        startMonitoring()
+    }
+
     func startMonitoring() {
+        guard refreshTask == nil else { return }
         refreshTask = Task {
             // Prime the deltas with an initial sample
             _ = await monitor.collectSnapshot()
