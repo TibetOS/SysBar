@@ -4,6 +4,7 @@ struct SysBarPanel: View {
     let state: AppState
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
     @State private var updateChecker = UpdateChecker()
 
     var body: some View {
@@ -290,8 +291,7 @@ struct SysBarPanel: View {
 
     private var settingsButton: some View {
         Button(action: {
-            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-            NSApp.activate(ignoringOtherApps: true)
+            openSettings()
             dismiss()
         }) {
             HStack {
