@@ -7,7 +7,10 @@ final class AppState {
     var snapshot: SystemSnapshot?
     var cpuHistory: [Double] = []
     var isFloatingVisible = false
+    var diskBreakdown: [DiskEntry] = []
+    var isDiskScanning = false
     private let monitor = SystemMonitor()
+    private let diskAnalyzer = DiskAnalyzer()
     private var refreshTask: Task<Void, Never>?
     private let maxHistorySize = 20
     private var floatingPanel: FloatingPanel?
@@ -37,6 +40,18 @@ final class AppState {
 
     func stopMonitoring() {
         refreshTask?.cancel()
+    }
+
+    // MARK: - Disk Breakdown
+
+    func scanDisk() {
+        guard !isDiskScanning else { return }
+        isDiskScanning = true
+        Task {
+            let entries = await diskAnalyzer.analyze()
+            self.diskBreakdown = entries
+            self.isDiskScanning = false
+        }
     }
 
     // MARK: - Floating Panel
