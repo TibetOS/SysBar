@@ -1,5 +1,5 @@
 APP_NAME    = SysBar
-VERSION     = 0.3.0
+VERSION     = 0.4.0
 BUILD_DIR   = .build/release
 APP_DIR     = build/$(APP_NAME).app
 CONTENTS    = $(APP_DIR)/Contents
