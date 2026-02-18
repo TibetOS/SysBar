@@ -46,9 +46,11 @@ dmg: app
 		-srcfolder build/dmg-stage \
 		-ov -format UDRW \
 		build/$(APP_NAME)-rw.dmg
-	@# Mount, configure Finder window, unmount
+	@# Mount, add background, configure Finder window, unmount
 	hdiutil attach build/$(APP_NAME)-rw.dmg -mountpoint /Volumes/$(APP_NAME)
-	osascript scripts/dmg-layout.applescript $(APP_NAME)
+	mkdir -p /Volumes/$(APP_NAME)/.background
+	cp scripts/dmg-background.png /Volumes/$(APP_NAME)/.background/bg.png
+	osascript scripts/dmg-layout.applescript $(APP_NAME) bg.png
 	sync
 	hdiutil detach /Volumes/$(APP_NAME)
 	@# Convert to compressed read-only DMG
