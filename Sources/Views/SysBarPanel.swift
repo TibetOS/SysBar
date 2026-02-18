@@ -1,4 +1,5 @@
 import SwiftUI
+import ServiceManagement
 
 struct SysBarPanel: View {
     let state: AppState
@@ -23,6 +24,7 @@ struct SysBarPanel: View {
             }
 
             floatingToggle
+            launchAtLoginToggle
             checkForUpdatesButton
             Divider()
             aboutButton
@@ -249,6 +251,29 @@ struct SysBarPanel: View {
                 Text(state.isFloatingVisible
                      ? "Hide Floating Panel"
                      : "Show Floating Panel")
+            }
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var launchAtLoginToggle: some View {
+        let enabled = SMAppService.mainApp.status == .enabled
+        return Button(action: {
+            do {
+                if enabled {
+                    try SMAppService.mainApp.unregister()
+                } else {
+                    try SMAppService.mainApp.register()
+                }
+            } catch {
+                // Registration can fail if app isn't in /Applications
+            }
+        }) {
+            HStack {
+                Image(systemName: enabled ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(enabled ? .green : .secondary)
+                Text("Launch at Login")
             }
         }
         .buttonStyle(.plain)
