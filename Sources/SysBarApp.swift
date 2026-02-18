@@ -22,8 +22,4 @@ struct SysBarApp: App {
             SettingsView()
         }
     }
-
-    init() {
-        NSApplication.shared.setActivationPolicy(.accessory)
-    }
 }
