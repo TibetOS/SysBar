@@ -5,6 +5,16 @@ struct FloatingView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Spacer()
+                Button(action: { state.toggleFloating() }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+
             if let snap = state.snapshot {
                 compactMetric("CPU", value: snap.cpu.totalUsage,
                               detail: MetricFormatter.percent(snap.cpu.totalUsage))
