@@ -95,7 +95,76 @@ struct FloatingView: View {
 
     @ViewBuilder
     private func expandedContent(_ snap: SystemSnapshot) -> some View {
-        // CPU with spark-line
+        // System Info
+        systemInfoSection(snap.info)
+        Divider().padding(.vertical, 2)
+
+        // CPU
+        expandedCPUSection(snap.cpu)
+        Divider().padding(.vertical, 2)
+
+        // RAM
+        expandedRAMSection(snap.ram)
+        Divider().padding(.vertical, 2)
+
+        // GPU + Disk
+        expandedMetricBar("GPU", value: snap.gpu.utilization,
+                          detail: MetricFormatter.percent(snap.gpu.utilization))
+        expandedMetricBar("Disk", value: snap.disk.usagePercent,
+                          detail: "\(MetricFormatter.bytes(snap.disk.used)) / \(MetricFormatter.bytes(snap.disk.total))")
+
+        // Disk Breakdown
+        if !state.diskBreakdown.isEmpty || state.isDiskScanning {
+            diskBreakdownSection
+        }
+
+        Divider().padding(.vertical, 2)
+
+        // Network
+        expandedNetworkSection(snap.network)
+
+        // Battery
+        if snap.battery.hasBattery {
+            Divider().padding(.vertical, 2)
+            expandedBatterySection(snap.battery)
+        }
+    }
+
+    // MARK: - System Info
+
+    private func systemInfoSection(_ info: SystemInfo) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 6) {
+                Image(systemName: "desktopcomputer")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text(info.chipName)
+                    .font(.system(.caption, design: .monospaced))
+                    .lineLimit(1)
+            }
+            .frame(height: 16)
+
+            HStack(spacing: 16) {
+                infoTag("macOS \(info.macOSVersion)")
+                infoTag(info.memorySize)
+                infoTag(info.thermalState)
+            }
+        }
+    }
+
+    private func infoTag(_ text: String) -> some View {
+        Text(text)
+            .font(.system(.caption2, design: .monospaced))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 1)
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 4))
+    }
+
+    // MARK: - Expanded CPU
+
+    @ViewBuilder
+    private func expandedCPUSection(_ cpu: CPUMetrics) -> some View {
         HStack(spacing: 8) {
             Text("CPU")
                 .font(.system(.caption, design: .monospaced, weight: .medium))
@@ -103,117 +172,176 @@ struct FloatingView: View {
                 .foregroundStyle(.secondary)
             SparkLine(values: state.cpuHistory)
                 .frame(height: 16)
-            Text("\(MetricFormatter.percent(snap.cpu.totalUsage)) · \(snap.cpu.coreCount) cores")
+            Text("\(MetricFormatter.percent(cpu.totalUsage))")
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .fixedSize()
         }
         .frame(height: 20)
 
-        expandedMetricBar("RAM", value: snap.ram.usagePercent,
-                          detail: "\(MetricFormatter.bytes(snap.ram.used)) / \(MetricFormatter.bytes(snap.ram.total))")
-        expandedMetricBar("GPU", value: snap.gpu.utilization,
-                          detail: MetricFormatter.percent(snap.gpu.utilization))
-        expandedMetricBar("Disk", value: snap.disk.usagePercent,
-                          detail: "\(MetricFormatter.bytes(snap.disk.used)) / \(MetricFormatter.bytes(snap.disk.total))")
-
-        Divider().padding(.vertical, 2)
-        networkBatteryRow(snap)
-
-        Divider().padding(.vertical, 2)
-
-        // Disk Breakdown
-        diskBreakdownSection
+        if !cpu.perCoreUsage.isEmpty {
+            coreGrid(cpu.perCoreUsage)
+                .padding(.leading, 4)
+        }
     }
 
-    // MARK: - Shared Components
-
-    private func networkBatteryRow(_ snap: SystemSnapshot) -> some View {
-        let fontSize: CGFloat = state.isFloatingExpanded ? 8 : 7
-        let textStyle: Font.TextStyle = state.isFloatingExpanded ? .caption : .caption2
-        return HStack(spacing: 12) {
-            HStack(spacing: 3) {
-                Image(systemName: "arrow.up")
-                    .font(.system(size: fontSize, weight: .bold))
-                    .foregroundStyle(.blue)
-                Text(MetricFormatter.speed(snap.network.bytesPerSecUp))
-                    .font(.system(textStyle, design: .monospaced))
-            }
-            HStack(spacing: 3) {
-                Image(systemName: "arrow.down")
-                    .font(.system(size: fontSize, weight: .bold))
-                    .foregroundStyle(.green)
-                Text(MetricFormatter.speed(snap.network.bytesPerSecDown))
-                    .font(.system(textStyle, design: .monospaced))
-            }
-            Spacer()
-            if snap.battery.hasBattery {
-                HStack(spacing: 3) {
-                    if snap.battery.isCharging {
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: fontSize))
-                            .foregroundStyle(.yellow)
-                    }
-                    Text("\(snap.battery.level)%")
-                        .font(.system(textStyle, design: .monospaced))
-                    Image(systemName: "battery.100percent")
-                        .font(.system(size: fontSize + 2))
-                        .foregroundStyle(batteryColor(snap.battery.level))
+    private func coreGrid(_ cores: [Double]) -> some View {
+        let columns = Array(
+            repeating: GridItem(.fixed(12), spacing: 3),
+            count: min(cores.count, 8)
+        )
+        return LazyVGrid(columns: columns, spacing: 3) {
+            ForEach(Array(cores.enumerated()), id: \.offset) { idx, usage in
+                VStack(spacing: 1) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(coreColor(usage))
+                        .frame(width: 12, height: 12)
+                    Text("\(idx)")
+                        .font(.system(size: 7, design: .monospaced))
+                        .foregroundStyle(.tertiary)
                 }
+                .help("Core \(idx): \(MetricFormatter.percent(usage))")
             }
         }
-        .frame(height: state.isFloatingExpanded ? 18 : 14)
-        .foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var loadingRow: some View {
-        HStack {
-            ProgressView().controlSize(.mini)
-            Text("Loading...")
+    private func coreColor(_ usage: Double) -> Color {
+        if usage > 0.85 { return .red }
+        if usage > 0.60 { return .orange }
+        if usage > 0.30 { return .yellow }
+        return .green
+    }
+
+    // MARK: - Expanded RAM
+
+    @ViewBuilder
+    private func expandedRAMSection(_ ram: RAMMetrics) -> some View {
+        expandedMetricBar("RAM", value: ram.usagePercent,
+                          detail: "\(MetricFormatter.bytes(ram.used)) / \(MetricFormatter.bytes(ram.total))")
+
+        HStack(spacing: 12) {
+            ramDetail("App", value: ram.appMemory, color: .blue)
+            ramDetail("Wired", value: ram.wired, color: .orange)
+            ramDetail("Compressed", value: ram.compressed, color: .purple)
+        }
+        .padding(.leading, 4)
+    }
+
+    private func ramDetail(_ label: String, value: UInt64, color: Color) -> some View {
+        HStack(spacing: 3) {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+            Text("\(label): \(MetricFormatter.bytes(value))")
                 .font(.system(.caption2, design: .monospaced))
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - Expanded Network
+
+    private func expandedNetworkSection(_ net: NetworkMetrics) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 12) {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(.blue)
+                    Text(MetricFormatter.speed(net.bytesPerSecUp))
+                        .font(.system(.caption, design: .monospaced))
+                }
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.down")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(.green)
+                    Text(MetricFormatter.speed(net.bytesPerSecDown))
+                        .font(.system(.caption, design: .monospaced))
+                }
+                Spacer()
+            }
+            .frame(height: 18)
+
+            HStack(spacing: 12) {
+                Text("Total sent: \(MetricFormatter.bytes(net.totalSent))")
+                    .font(.system(.caption2, design: .monospaced))
+                    .foregroundStyle(.tertiary)
+                Text("Total recv: \(MetricFormatter.bytes(net.totalReceived))")
+                    .font(.system(.caption2, design: .monospaced))
+                    .foregroundStyle(.tertiary)
+            }
+        }
+    }
+
+    // MARK: - Expanded Battery
+
+    private func expandedBatterySection(_ battery: BatteryMetrics) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 8) {
+                Image(systemName: battery.isCharging ? "battery.100percent.bolt" : "battery.100percent")
+                    .foregroundStyle(batteryColor(battery.level))
+                Text("\(battery.level)%")
+                    .font(.system(.caption, design: .monospaced, weight: .medium))
+
+                if battery.isCharging {
+                    Text("Charging")
+                        .font(.caption)
+                        .foregroundStyle(.yellow)
+                } else if battery.isPluggedIn {
+                    Text("Plugged In")
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                }
+                Spacer()
+            }
+            .frame(height: 18)
+
+            HStack(spacing: 12) {
+                infoTag("Health: \(battery.health)%")
+                infoTag("Cycles: \(battery.cycleCount)")
+                if battery.temperature > 0 {
+                    infoTag(String(format: "%.1f°C", battery.temperature))
+                }
+            }
         }
     }
 
     // MARK: - Disk Breakdown
 
     private var diskBreakdownSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Disk Breakdown")
-                .font(.system(.caption, weight: .semibold))
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 3) {
+            Text("Breakdown")
+                .font(.system(.caption2, weight: .semibold))
+                .foregroundStyle(.tertiary)
+                .padding(.top, 2)
 
             if state.isDiskScanning {
-                HStack(spacing: 6) {
-                    ProgressView().controlSize(.small)
-                    Text("Scanning directories...")
-                        .font(.caption)
+                HStack(spacing: 4) {
+                    ProgressView().controlSize(.mini)
+                    Text("Scanning...")
+                        .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
-                .padding(.vertical, 4)
-            } else if state.diskBreakdown.isEmpty {
-                Text("No data")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             } else {
-                ForEach(state.diskBreakdown.prefix(10)) { entry in
-                    HStack(spacing: 6) {
+                ForEach(state.diskBreakdown.prefix(8)) { entry in
+                    HStack(spacing: 5) {
                         Image(systemName: folderIcon(entry.name))
-                            .font(.caption2)
-                            .frame(width: 14)
+                            .font(.system(size: 8))
+                            .frame(width: 10)
                             .foregroundStyle(.secondary)
                         Text(entry.name)
-                            .font(.system(.caption, design: .monospaced))
+                            .font(.system(.caption2, design: .monospaced))
                             .lineLimit(1)
                         Spacer()
                         Text(MetricFormatter.bytes(entry.size))
-                            .font(.system(.caption, design: .monospaced))
+                            .font(.system(.caption2, design: .monospaced))
                             .foregroundStyle(.secondary)
                     }
-                    .frame(height: 18)
+                    .frame(height: 15)
                 }
             }
         }
+        .padding(.leading, 4)
     }
 
     private func folderIcon(_ name: String) -> String {
@@ -229,6 +357,53 @@ struct FloatingView: View {
         case "System & Other": return "gearshape"
         case "Trash": return "trash"
         default: return "folder"
+        }
+    }
+
+    // MARK: - Shared Network/Battery (compact)
+
+    private func networkBatteryRow(_ snap: SystemSnapshot) -> some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 3) {
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundStyle(.blue)
+                Text(MetricFormatter.speed(snap.network.bytesPerSecUp))
+                    .font(.system(.caption2, design: .monospaced))
+            }
+            HStack(spacing: 3) {
+                Image(systemName: "arrow.down")
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundStyle(.green)
+                Text(MetricFormatter.speed(snap.network.bytesPerSecDown))
+                    .font(.system(.caption2, design: .monospaced))
+            }
+            Spacer()
+            if snap.battery.hasBattery {
+                HStack(spacing: 3) {
+                    if snap.battery.isCharging {
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 7))
+                            .foregroundStyle(.yellow)
+                    }
+                    Text("\(snap.battery.level)%")
+                        .font(.system(.caption2, design: .monospaced))
+                    Image(systemName: "battery.100percent")
+                        .font(.system(size: 9))
+                        .foregroundStyle(batteryColor(snap.battery.level))
+                }
+            }
+        }
+        .frame(height: 14)
+        .foregroundStyle(.secondary)
+    }
+
+    private var loadingRow: some View {
+        HStack {
+            ProgressView().controlSize(.mini)
+            Text("Loading...")
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundStyle(.secondary)
         }
     }
 

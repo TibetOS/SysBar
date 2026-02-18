@@ -17,7 +17,7 @@ final class AppState {
     private var floatingPanel: FloatingPanel?
 
     private let compactSize = NSSize(width: 250, height: 200)
-    private let expandedSize = NSSize(width: 380, height: 460)
+    private let expandedSize = NSSize(width: 400, height: 580)
 
     init() {
         startMonitoring()

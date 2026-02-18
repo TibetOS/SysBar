@@ -4,12 +4,36 @@ import IOKit
 
 actor SystemMonitor {
 
-    // Page size fetched once via sysctl (concurrency-safe nonisolated constant)
     private static let hostPageSize: UInt64 = {
         var size: vm_size_t = 0
         var len = MemoryLayout<vm_size_t>.size
         sysctlbyname("hw.pagesize", &size, &len, nil, 0)
         return UInt64(size)
+    }()
+
+    // Cached system info (doesn't change)
+    private static let cachedChipName: String = {
+        var size = 0
+        sysctlbyname("machdep.cpu.brand_string", nil, &size, nil, 0)
+        var buffer = [UInt8](repeating: 0, count: size)
+        sysctlbyname("machdep.cpu.brand_string", &buffer, &size, nil, 0)
+        if let idx = buffer.firstIndex(of: 0) { buffer.removeSubrange(idx...) }
+        return String(decoding: buffer, as: UTF8.self)
+    }()
+
+    private static let cachedMacOSVersion: String = {
+        let v = ProcessInfo.processInfo.operatingSystemVersion
+        return "\(v.majorVersion).\(v.minorVersion).\(v.patchVersion)"
+    }()
+
+    private static let cachedHostname: String = {
+        ProcessInfo.processInfo.hostName
+    }()
+
+    private static let cachedMemorySize: String = {
+        let bytes = ProcessInfo.processInfo.physicalMemory
+        let gb = Double(bytes) / 1_073_741_824
+        return String(format: "%.0f GB", gb)
     }()
 
     // MARK: - State for delta calculations
@@ -56,7 +80,6 @@ actor SystemMonitor {
             currentTicks.append([user, system, idle, nice])
         }
 
-        // First call: no previous sample, return zeros
         guard !previousCPUTicks.isEmpty,
               previousCPUTicks.count == coreCount else {
             previousCPUTicks = currentTicks
@@ -123,16 +146,23 @@ actor SystemMonitor {
         }
 
         guard result == KERN_SUCCESS else {
-            return RAMMetrics(used: 0, total: 0)
+            return RAMMetrics(used: 0, total: 0, appMemory: 0, wired: 0, compressed: 0)
         }
 
         let pageSize = UInt64(Self.hostPageSize)
         let active = UInt64(stats.active_count) * pageSize
         let wired = UInt64(stats.wire_count) * pageSize
+        let compressed = UInt64(stats.compressor_page_count) * pageSize
         let used = active + wired
         let total = ProcessInfo.processInfo.physicalMemory
 
-        return RAMMetrics(used: used, total: total)
+        return RAMMetrics(
+            used: used,
+            total: total,
+            appMemory: active,
+            wired: wired,
+            compressed: compressed
+        )
     }
 
     // MARK: - GPU
@@ -175,7 +205,6 @@ actor SystemMonitor {
 
         var utilization: Double = 0
         if let perfStats = dict["PerformanceStatistics"] as? [String: Any] {
-            // Apple Silicon GPUs report utilization under various keys
             if let gpuUtil = perfStats["Device Utilization %"] as? NSNumber {
                 utilization = gpuUtil.doubleValue / 100.0
             } else if let gpuUtil = perfStats["GPU Activity(%)"] as? NSNumber {
@@ -211,7 +240,8 @@ actor SystemMonitor {
     func collectNetwork() -> NetworkMetrics {
         var ifaddrPtr: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&ifaddrPtr) == 0, let firstAddr = ifaddrPtr else {
-            return NetworkMetrics(bytesPerSecUp: 0, bytesPerSecDown: 0)
+            return NetworkMetrics(bytesPerSecUp: 0, bytesPerSecDown: 0,
+                                 totalSent: 0, totalReceived: 0)
         }
         defer { freeifaddrs(ifaddrPtr) }
 
@@ -222,11 +252,9 @@ actor SystemMonitor {
         while let addr = current {
             let ifaAddr = addr.pointee
 
-            // Only AF_LINK (link-layer) interfaces
             if ifaAddr.ifa_addr?.pointee.sa_family == UInt8(AF_LINK) {
                 let name = String(cString: ifaAddr.ifa_name)
 
-                // Exclude loopback
                 if name != "lo0" {
                     if let data = ifaAddr.ifa_data {
                         let networkData = data.assumingMemoryBound(
@@ -245,15 +273,16 @@ actor SystemMonitor {
 
         guard let prevBytes = previousNetworkBytes,
               let prevTime = previousNetworkTimestamp else {
-            // First sample: store baseline, return zero rates
             previousNetworkBytes = (sent: totalSent, received: totalReceived)
             previousNetworkTimestamp = now
-            return NetworkMetrics(bytesPerSecUp: 0, bytesPerSecDown: 0)
+            return NetworkMetrics(bytesPerSecUp: 0, bytesPerSecDown: 0,
+                                 totalSent: totalSent, totalReceived: totalReceived)
         }
 
         let elapsed = now.timeIntervalSince(prevTime)
         guard elapsed > 0 else {
-            return NetworkMetrics(bytesPerSecUp: 0, bytesPerSecDown: 0)
+            return NetworkMetrics(bytesPerSecUp: 0, bytesPerSecDown: 0,
+                                 totalSent: totalSent, totalReceived: totalReceived)
         }
 
         let deltaSent = totalSent >= prevBytes.sent
@@ -269,7 +298,9 @@ actor SystemMonitor {
 
         return NetworkMetrics(
             bytesPerSecUp: bytesPerSecUp,
-            bytesPerSecDown: bytesPerSecDown
+            bytesPerSecDown: bytesPerSecDown,
+            totalSent: totalSent,
+            totalReceived: totalReceived
         )
     }
 
@@ -279,7 +310,8 @@ actor SystemMonitor {
         guard let matching = IOServiceMatching("AppleSmartBattery") else {
             return BatteryMetrics(
                 level: 0, isCharging: false,
-                isPluggedIn: false, hasBattery: false
+                isPluggedIn: false, hasBattery: false,
+                cycleCount: 0, health: 0, temperature: 0
             )
         }
 
@@ -289,7 +321,8 @@ actor SystemMonitor {
         guard service != 0 else {
             return BatteryMetrics(
                 level: 0, isCharging: false,
-                isPluggedIn: false, hasBattery: false
+                isPluggedIn: false, hasBattery: false,
+                cycleCount: 0, health: 0, temperature: 0
             )
         }
         defer { IOObjectRelease(service) }
@@ -303,24 +336,58 @@ actor SystemMonitor {
               let dict = properties?.takeRetainedValue() as? [String: Any] else {
             return BatteryMetrics(
                 level: 0, isCharging: false,
-                isPluggedIn: false, hasBattery: false
+                isPluggedIn: false, hasBattery: false,
+                cycleCount: 0, health: 0, temperature: 0
             )
         }
 
         let currentCapacity = dict["CurrentCapacity"] as? Int ?? 0
         let maxCapacity = dict["MaxCapacity"] as? Int ?? 100
+        let designCapacity = dict["DesignCapacity"] as? Int ?? maxCapacity
         let isCharging = dict["IsCharging"] as? Bool ?? false
         let externalConnected = dict["ExternalConnected"] as? Bool ?? false
+        let cycleCount = dict["CycleCount"] as? Int ?? 0
+        let tempRaw = dict["Temperature"] as? Int ?? 0
 
         let level = maxCapacity > 0
             ? Int(Double(currentCapacity) / Double(maxCapacity) * 100)
             : 0
 
+        let health = designCapacity > 0
+            ? Int(Double(maxCapacity) / Double(designCapacity) * 100)
+            : 0
+
+        // Temperature is in centi-degrees Celsius
+        let temperature = Double(tempRaw) / 100.0
+
         return BatteryMetrics(
             level: min(max(level, 0), 100),
             isCharging: isCharging,
             isPluggedIn: externalConnected,
-            hasBattery: true
+            hasBattery: true,
+            cycleCount: cycleCount,
+            health: min(health, 100),
+            temperature: temperature
+        )
+    }
+
+    // MARK: - System Info
+
+    func collectSystemInfo() -> SystemInfo {
+        let thermal: String = switch ProcessInfo.processInfo.thermalState {
+        case .nominal: "Normal"
+        case .fair: "Fair"
+        case .serious: "Serious"
+        case .critical: "Critical"
+        @unknown default: "Unknown"
+        }
+
+        return SystemInfo(
+            chipName: Self.cachedChipName,
+            macOSVersion: Self.cachedMacOSVersion,
+            hostname: Self.cachedHostname,
+            memorySize: Self.cachedMemorySize,
+            thermalState: thermal
         )
     }
 
@@ -334,6 +401,7 @@ actor SystemMonitor {
             disk: collectDisk(),
             network: collectNetwork(),
             battery: collectBattery(),
+            info: collectSystemInfo(),
             timestamp: Date()
         )
     }
