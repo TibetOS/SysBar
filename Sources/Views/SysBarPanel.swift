@@ -3,7 +3,6 @@ import SwiftUI
 struct SysBarPanel: View {
     let state: AppState
     @Environment(\.dismiss) private var dismiss
-    @State private var showDiskBreakdown = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -63,7 +62,7 @@ struct SysBarPanel: View {
         cpuSection(snap.cpu)
         ramRow(snap.ram)
         gpuRow(snap.gpu)
-        diskSection(snap.disk)
+        diskRow(snap.disk)
     }
 
     // MARK: - CPU
@@ -132,111 +131,19 @@ struct SysBarPanel: View {
 
     // MARK: - Disk
 
-    @ViewBuilder
-    private func diskSection(_ disk: DiskMetrics) -> some View {
+    private func diskRow(_ disk: DiskMetrics) -> some View {
         Button(action: {
-            showDiskBreakdown.toggle()
-            if showDiskBreakdown && state.diskBreakdown.isEmpty {
-                state.scanDisk()
-            }
+            state.openDiskBreakdown()
+            dismiss()
         }) {
-            HStack(spacing: 8) {
-                Image(systemName: "internaldrive")
-                    .frame(width: 16)
-                    .foregroundStyle(.secondary)
-
-                Text("Disk")
-                    .frame(width: 40, alignment: .leading)
-                    .font(.system(.caption, design: .monospaced))
-
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(.quaternary)
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(diskBarColor(disk.usagePercent))
-                            .frame(width: geo.size.width * min(max(CGFloat(disk.usagePercent), 0), 1))
-                    }
-                }
-                .frame(height: 8)
-
-                Text("\(MetricFormatter.bytes(disk.used))/\(MetricFormatter.bytes(disk.total))")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 80, alignment: .trailing)
-
-                Image(systemName: showDiskBreakdown ? "chevron.up" : "chevron.down")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
-            .frame(height: 20)
-            .contentShape(Rectangle())
+            MetricRow(
+                label: "Disk",
+                icon: "internaldrive",
+                value: disk.usagePercent,
+                detail: "\(MetricFormatter.bytes(disk.used))/\(MetricFormatter.bytes(disk.total))"
+            )
         }
         .buttonStyle(.plain)
-
-        if showDiskBreakdown {
-            diskBreakdownView
-                .padding(.leading, 24)
-                .padding(.bottom, 4)
-        }
-    }
-
-    private var diskBreakdownView: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            if state.isDiskScanning {
-                HStack(spacing: 6) {
-                    ProgressView()
-                        .controlSize(.mini)
-                    Text("Scanning directories...")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.vertical, 4)
-            } else if state.diskBreakdown.isEmpty {
-                Text("No data")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(state.diskBreakdown.prefix(8)) { entry in
-                    HStack(spacing: 6) {
-                        Image(systemName: folderIcon(entry.name))
-                            .font(.caption2)
-                            .frame(width: 12)
-                            .foregroundStyle(.secondary)
-                        Text(entry.name)
-                            .font(.system(.caption2, design: .monospaced))
-                            .frame(width: 80, alignment: .leading)
-                        Spacer()
-                        Text(MetricFormatter.bytes(entry.size))
-                            .font(.system(.caption2, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(height: 16)
-                }
-            }
-        }
-    }
-
-    private func folderIcon(_ name: String) -> String {
-        switch name {
-        case "Applications": return "app.badge"
-        case "Downloads": return "arrow.down.circle"
-        case "Documents": return "doc"
-        case "Library": return "books.vertical"
-        case "Desktop": return "menubar.dock.rectangle"
-        case "Pictures": return "photo"
-        case "Music": return "music.note"
-        case "Movies": return "film"
-        case "System & Other": return "gearshape"
-        case "Trash": return "trash"
-        default: return "folder"
-        }
-    }
-
-    private func diskBarColor(_ value: Double) -> Color {
-        if value > 0.85 { return .red }
-        if value > 0.60 { return .orange }
-        return .green
     }
 
     // MARK: - Network
