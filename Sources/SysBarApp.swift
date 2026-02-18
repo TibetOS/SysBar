@@ -21,5 +21,13 @@ struct SysBarApp: App {
         Settings {
             SettingsView()
         }
+        .commands {
+            CommandGroup(after: .sidebar) {
+                Button("Toggle Floating Panel") {
+                    appState.toggleFloating()
+                }
+                .keyboardShortcut("d", modifiers: [.command, .shift])
+            }
+        }
     }
 }

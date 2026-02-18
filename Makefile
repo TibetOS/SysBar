@@ -36,11 +36,27 @@ install: app
 
 dmg: app
 	@echo "→ Creating DMG"
-	hdiutil create \
-		-volname "$(APP_NAME)" \
-		-srcfolder $(APP_DIR) \
-		-ov -format UDZO \
-		build/$(APP_NAME)-$(VERSION).dmg
+	@# Stage app + Applications alias for drag-to-install
+	rm -rf build/dmg-stage
+	mkdir -p build/dmg-stage
+	cp -R $(APP_DIR) build/dmg-stage/
+	ln -s /Applications build/dmg-stage/Applications
+	@# Create writable DMG, set Finder layout, then convert to compressed
+	hdiutil create -volname "$(APP_NAME)" \
+		-srcfolder build/dmg-stage \
+		-ov -format UDRW \
+		build/$(APP_NAME)-rw.dmg
+	@# Mount, configure Finder window, unmount
+	hdiutil attach build/$(APP_NAME)-rw.dmg -mountpoint /Volumes/$(APP_NAME)
+	osascript scripts/dmg-layout.applescript $(APP_NAME)
+	sync
+	hdiutil detach /Volumes/$(APP_NAME)
+	@# Convert to compressed read-only DMG
+	rm -f build/$(APP_NAME)-$(VERSION).dmg
+	hdiutil convert build/$(APP_NAME)-rw.dmg \
+		-format UDZO -o build/$(APP_NAME)-$(VERSION).dmg
+	rm -f build/$(APP_NAME)-rw.dmg
+	rm -rf build/dmg-stage
 	@echo "✓ build/$(APP_NAME)-$(VERSION).dmg ready"
 
 clean:
