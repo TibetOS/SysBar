@@ -4,7 +4,7 @@ import AppKit
 @Observable
 @MainActor
 final class UpdateChecker {
-    static let currentVersion = "0.5.0"
+    static let currentVersion = "0.6.0"
     private static let repoOwner = "TibetOS"
     private static let repoName = "SysBar"
 
