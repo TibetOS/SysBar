@@ -19,6 +19,7 @@ struct SysBarPanel: View {
                 Divider()
             }
 
+            floatingToggle
             quitButton
         }
         .padding(12)
@@ -222,7 +223,24 @@ struct SysBarPanel: View {
         return .green
     }
 
-    // MARK: - Quit
+    // MARK: - Actions
+
+    private var floatingToggle: some View {
+        Button(action: {
+            state.toggleFloating()
+        }) {
+            HStack {
+                Image(systemName: state.isFloatingVisible
+                      ? "rectangle.on.rectangle.slash"
+                      : "rectangle.on.rectangle")
+                Text(state.isFloatingVisible
+                     ? "Hide Floating Panel"
+                     : "Show Floating Panel")
+            }
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
 
     private var quitButton: some View {
         Button(action: {
