@@ -25,6 +25,7 @@ struct SysBarPanel: View {
 
             floatingToggle
             launchAtLoginToggle
+            fullDiskAccessButton
             checkForUpdatesButton
             Divider()
             aboutButton
@@ -274,6 +275,21 @@ struct SysBarPanel: View {
                 Image(systemName: enabled ? "checkmark.circle.fill" : "circle")
                     .foregroundStyle(enabled ? .green : .secondary)
                 Text("Launch at Login")
+            }
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var fullDiskAccessButton: some View {
+        Button(action: {
+            NSWorkspace.shared.open(
+                URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!
+            )
+        }) {
+            HStack {
+                Image(systemName: "lock.shield")
+                Text("Grant Full Disk Access...")
             }
         }
         .buttonStyle(.plain)
