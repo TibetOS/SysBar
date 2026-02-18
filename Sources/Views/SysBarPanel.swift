@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SysBarPanel: View {
     let state: AppState
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -228,6 +229,7 @@ struct SysBarPanel: View {
     private var floatingToggle: some View {
         Button(action: {
             state.toggleFloating()
+            dismiss()
         }) {
             HStack {
                 Image(systemName: state.isFloatingVisible

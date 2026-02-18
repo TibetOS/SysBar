@@ -53,9 +53,9 @@ final class AppState {
     private func showFloatingPanel() {
         if floatingPanel == nil {
             let screen = NSScreen.main ?? NSScreen.screens[0]
-            let x = screen.visibleFrame.maxX - 220
-            let y = screen.visibleFrame.maxY - 250
-            let frame = NSRect(x: x, y: y, width: 200, height: 220)
+            let x = screen.visibleFrame.maxX - 270
+            let y = screen.visibleFrame.maxY - 230
+            let frame = NSRect(x: x, y: y, width: 250, height: 200)
 
             let panel = FloatingPanel(contentRect: frame)
             let hostingView = NSHostingView(rootView: FloatingView(state: self))

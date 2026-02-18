@@ -3,32 +3,99 @@ import SwiftUI
 struct FloatingView: View {
     let state: AppState
 
+    private var uptime: String {
+        let secs = ProcessInfo.processInfo.systemUptime
+        let days = Int(secs) / 86400
+        let hours = (Int(secs) % 86400) / 3600
+        let mins = (Int(secs) % 3600) / 60
+        if days > 0 { return "\(days)d \(hours)h" }
+        return "\(hours)h \(mins)m"
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
+        VStack(alignment: .leading, spacing: 3) {
+            // Header
+            HStack(spacing: 4) {
+                Text("SysBar")
+                    .font(.system(.caption2, weight: .semibold))
+                Text("·")
+                    .foregroundStyle(.quaternary)
+                Text("up \(uptime)")
+                    .font(.system(.caption2, design: .monospaced))
+                    .foregroundStyle(.tertiary)
                 Spacer()
                 Button(action: { state.toggleFloating() }) {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.tertiary)
                 }
                 .buttonStyle(.plain)
             }
 
             if let snap = state.snapshot {
-                compactMetric("CPU", value: snap.cpu.totalUsage,
-                              detail: MetricFormatter.percent(snap.cpu.totalUsage))
-                compactMetric("RAM", value: snap.ram.usagePercent,
-                              detail: "\(MetricFormatter.bytes(snap.ram.used))/\(MetricFormatter.bytes(snap.ram.total))")
-                compactMetric("GPU", value: snap.gpu.utilization,
-                              detail: MetricFormatter.percent(snap.gpu.utilization))
-                compactMetric("Disk", value: snap.disk.usagePercent,
-                              detail: "\(MetricFormatter.bytes(snap.disk.used))/\(MetricFormatter.bytes(snap.disk.total))")
+                // CPU with spark-line
+                HStack(spacing: 6) {
+                    Text("CPU")
+                        .font(.system(.caption2, design: .monospaced))
+                        .frame(width: 28, alignment: .leading)
+                        .foregroundStyle(.secondary)
+                    SparkLine(values: state.cpuHistory)
+                        .frame(width: 60, height: 12)
+                    Spacer()
+                    Text("\(MetricFormatter.percent(snap.cpu.totalUsage)) · \(snap.cpu.coreCount) cores")
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                }
+                .frame(height: 16)
 
-                Divider()
+                // RAM
+                metricBar("RAM", value: snap.ram.usagePercent,
+                          detail: "\(MetricFormatter.bytes(snap.ram.used)) / \(MetricFormatter.bytes(snap.ram.total))")
 
-                networkRow(snap.network)
-                batteryRow(snap.battery)
+                // GPU
+                metricBar("GPU", value: snap.gpu.utilization,
+                          detail: MetricFormatter.percent(snap.gpu.utilization))
+
+                // Disk
+                metricBar("Disk", value: snap.disk.usagePercent,
+                          detail: "\(MetricFormatter.bytes(snap.disk.used)) / \(MetricFormatter.bytes(snap.disk.total))")
+
+                Divider().padding(.vertical, 1)
+
+                // Network + Battery on compact rows
+                HStack(spacing: 12) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "arrow.up")
+                            .font(.system(size: 7, weight: .bold))
+                            .foregroundStyle(.blue)
+                        Text(MetricFormatter.speed(snap.network.bytesPerSecUp))
+                            .font(.system(.caption2, design: .monospaced))
+                    }
+                    HStack(spacing: 3) {
+                        Image(systemName: "arrow.down")
+                            .font(.system(size: 7, weight: .bold))
+                            .foregroundStyle(.green)
+                        Text(MetricFormatter.speed(snap.network.bytesPerSecDown))
+                            .font(.system(.caption2, design: .monospaced))
+                    }
+                    Spacer()
+                    if snap.battery.hasBattery {
+                        HStack(spacing: 3) {
+                            if snap.battery.isCharging {
+                                Image(systemName: "bolt.fill")
+                                    .font(.system(size: 7))
+                                    .foregroundStyle(.yellow)
+                            }
+                            Text("\(snap.battery.level)%")
+                                .font(.system(.caption2, design: .monospaced))
+                            Image(systemName: "battery.100percent")
+                                .font(.system(size: 9))
+                                .foregroundStyle(batteryColor(snap.battery.level))
+                        }
+                    }
+                }
+                .frame(height: 14)
+                .foregroundStyle(.secondary)
             } else {
                 HStack {
                     ProgressView().controlSize(.mini)
@@ -39,17 +106,17 @@ struct FloatingView: View {
             }
         }
         .padding(10)
-        .frame(width: 200)
+        .frame(width: 250)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
     }
 
-    // MARK: - Compact metric row
+    // MARK: - Metric bar
 
-    private func compactMetric(_ label: String, value: Double, detail: String) -> some View {
+    private func metricBar(_ label: String, value: Double, detail: String) -> some View {
         HStack(spacing: 6) {
             Text(label)
                 .font(.system(.caption2, design: .monospaced))
-                .frame(width: 30, alignment: .leading)
+                .frame(width: 28, alignment: .leading)
                 .foregroundStyle(.secondary)
 
             GeometryReader { geo in
@@ -66,52 +133,21 @@ struct FloatingView: View {
             Text(detail)
                 .font(.system(.caption2, design: .monospaced))
                 .foregroundStyle(.secondary)
-                .frame(width: 70, alignment: .trailing)
+                .lineLimit(1)
+                .fixedSize()
         }
         .frame(height: 16)
-    }
-
-    private func networkRow(_ net: NetworkMetrics) -> some View {
-        HStack(spacing: 8) {
-            HStack(spacing: 2) {
-                Image(systemName: "arrow.up")
-                    .font(.system(size: 8))
-                    .foregroundStyle(.blue)
-                Text(MetricFormatter.speed(net.bytesPerSecUp))
-                    .font(.system(.caption2, design: .monospaced))
-            }
-            HStack(spacing: 2) {
-                Image(systemName: "arrow.down")
-                    .font(.system(size: 8))
-                    .foregroundStyle(.green)
-                Text(MetricFormatter.speed(net.bytesPerSecDown))
-                    .font(.system(.caption2, design: .monospaced))
-            }
-            Spacer()
-        }
-        .frame(height: 14)
-        .foregroundStyle(.secondary)
-    }
-
-    @ViewBuilder
-    private func batteryRow(_ battery: BatteryMetrics) -> some View {
-        if battery.hasBattery {
-            HStack(spacing: 4) {
-                Image(systemName: battery.isCharging ? "bolt.fill" : "battery.100percent")
-                    .font(.system(size: 8))
-                    .foregroundStyle(battery.isCharging ? .yellow : .green)
-                Text("\(battery.level)%")
-                    .font(.system(.caption2, design: .monospaced))
-                    .foregroundStyle(.secondary)
-                Spacer()
-            }
-            .frame(height: 14)
-        }
     }
 
     private func barColor(_ value: Double) -> Color {
         if value > 0.85 { return .red }
         if value > 0.60 { return .orange }
+        return .green
+    }
+
+    private func batteryColor(_ level: Int) -> Color {
+        if level <= 15 { return .red }
+        if level <= 30 { return .orange }
         return .green
     }
 }

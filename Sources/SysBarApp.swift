@@ -8,7 +8,7 @@ struct SysBarApp: App {
         MenuBarExtra {
             SysBarPanel(state: appState)
         } label: {
-            SparkLine(values: appState.cpuHistory)
+            Image(systemName: "gauge.with.dots.needle.33percent")
         }
         .menuBarExtraStyle(.window)
     }
