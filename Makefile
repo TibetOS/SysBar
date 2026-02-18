@@ -1,5 +1,5 @@
 APP_NAME    = SysBar
-VERSION     = 0.6.0
+VERSION     = $(shell cat VERSION)
 BUILD_DIR   = .build/release
 APP_DIR     = build/$(APP_NAME).app
 CONTENTS    = $(APP_DIR)/Contents
@@ -16,7 +16,7 @@ app: build
 	@echo "→ Assembling $(APP_NAME).app"
 	mkdir -p $(MACOS_DIR) $(RESOURCES)
 	cp $(BUILD_DIR)/$(APP_NAME) $(MACOS_DIR)/
-	cp Info.plist $(CONTENTS)/
+	sed 's/__VERSION__/$(VERSION)/g' Info.plist > $(CONTENTS)/Info.plist
 	echo -n "APPL????" > $(CONTENTS)/PkgInfo
 	@# Copy SPM resource bundle if present
 	@if [ -d "$(BUILD_DIR)/$(BUNDLE_NAME)" ]; then \

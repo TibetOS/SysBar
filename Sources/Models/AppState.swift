@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import UserNotifications
 
 @Observable
 @MainActor
@@ -10,6 +11,7 @@ final class AppState {
     var isFloatingExpanded = true
     var diskBreakdown: [DiskEntry] = []
     var isDiskScanning = false
+    var menuBarDisplay: MenuBarDisplayMode = Preferences.menuBarDisplay
     private let monitor = SystemMonitor()
     private let diskAnalyzer = DiskAnalyzer()
     private var refreshTask: Task<Void, Never>?
@@ -18,8 +20,12 @@ final class AppState {
 
     private let compactSize = NSSize(width: 250, height: 200)
     private let expandedSize = NSSize(width: 400, height: 580)
+    private var lastCPUAlert: Date = .distantPast
+    private var lastRAMAlert: Date = .distantPast
+    private let alertCooldown: TimeInterval = 60
 
     init() {
+        requestNotificationPermission()
         startMonitoring()
     }
 
@@ -36,13 +42,58 @@ final class AppState {
                 if self.cpuHistory.count > self.maxHistorySize {
                     self.cpuHistory.removeFirst()
                 }
-                try? await Task.sleep(for: .seconds(2))
+                self.menuBarDisplay = Preferences.menuBarDisplay
+                checkThresholds(snap)
+                try? await Task.sleep(for: .seconds(Preferences.refreshRate.rawValue))
             }
         }
     }
 
     func stopMonitoring() {
         refreshTask?.cancel()
+    }
+
+    // MARK: - Threshold Alerts
+
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+    }
+
+    private func checkThresholds(_ snap: SystemSnapshot) {
+        guard Preferences.alertsEnabled else { return }
+        let now = Date()
+
+        if snap.cpu.totalUsage >= Preferences.cpuThreshold,
+           now.timeIntervalSince(lastCPUAlert) > alertCooldown {
+            lastCPUAlert = now
+            sendAlert(
+                title: "High CPU Usage",
+                body: "CPU at \(MetricFormatter.percent(snap.cpu.totalUsage))"
+            )
+        }
+
+        if snap.ram.usagePercent >= Preferences.ramThreshold,
+           now.timeIntervalSince(lastRAMAlert) > alertCooldown {
+            lastRAMAlert = now
+            sendAlert(
+                title: "High RAM Usage",
+                body: "RAM at \(MetricFormatter.percent(snap.ram.usagePercent))"
+            )
+        }
+    }
+
+    private func sendAlert(title: String, body: String) {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: nil
+        )
+        UNUserNotificationCenter.current().add(request)
     }
 
     // MARK: - Disk Breakdown
