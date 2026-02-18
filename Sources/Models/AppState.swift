@@ -7,7 +7,7 @@ final class AppState {
     var snapshot: SystemSnapshot?
     var cpuHistory: [Double] = []
     var isFloatingVisible = false
-    var isFloatingExpanded = false
+    var isFloatingExpanded = true
     var diskBreakdown: [DiskEntry] = []
     var isDiskScanning = false
     private let monitor = SystemMonitor()
@@ -83,6 +83,9 @@ final class AppState {
         isFloatingVisible.toggle()
         if isFloatingVisible {
             showFloatingPanel()
+            if isFloatingExpanded && diskBreakdown.isEmpty {
+                scanDisk()
+            }
         } else {
             hideFloatingPanel()
         }
