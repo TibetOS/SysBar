@@ -9,7 +9,7 @@ struct CPUMetrics: Sendable {
 struct RAMMetrics: Sendable {
     let used: UInt64                // bytes
     let total: UInt64               // bytes
-    var usagePercent: Double { Double(used) / Double(total) }
+    var usagePercent: Double { total > 0 ? Double(used) / Double(total) : 0 }
 }
 
 struct GPUMetrics: Sendable {
@@ -21,7 +21,7 @@ struct GPUMetrics: Sendable {
 struct DiskMetrics: Sendable {
     let used: UInt64                // bytes
     let total: UInt64               // bytes
-    var usagePercent: Double { Double(used) / Double(total) }
+    var usagePercent: Double { total > 0 ? Double(used) / Double(total) : 0 }
 }
 
 struct NetworkMetrics: Sendable {
