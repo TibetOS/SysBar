@@ -55,13 +55,16 @@ final class AppState {
             let screen = NSScreen.main ?? NSScreen.screens[0]
             let x = screen.visibleFrame.maxX - 220
             let y = screen.visibleFrame.maxY - 250
-            let frame = NSRect(x: x, y: y, width: 200, height: 200)
+            let frame = NSRect(x: x, y: y, width: 200, height: 220)
 
             let panel = FloatingPanel(contentRect: frame)
-            panel.contentView = NSHostingView(rootView: FloatingView(state: self))
+            let hostingView = NSHostingView(rootView: FloatingView(state: self))
+            hostingView.frame = panel.contentView?.bounds ?? frame
+            hostingView.autoresizingMask = [.width, .height]
+            panel.contentView = hostingView
             floatingPanel = panel
         }
-        floatingPanel?.orderFront(nil)
+        floatingPanel?.makeKeyAndOrderFront(nil)
     }
 
     private func hideFloatingPanel() {
