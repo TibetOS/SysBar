@@ -1,0 +1,40 @@
+name: SysBar
+options:
+  bundleIdPrefix: com.tibetos
+  deploymentTarget:
+    macOS: "15.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "15.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_HARDENED_RUNTIME: true
+    CODE_SIGN_IDENTITY: "Apple Development"
+    CODE_SIGN_STYLE: Automatic
+    PRODUCT_BUNDLE_IDENTIFIER: com.tibetos.SysBar
+
+targets:
+  SysBar:
+    type: application
+    platform: macOS
+    sources:
+      - path: SysBar
+        excludes:
+          - "*.entitlements"
+    settings:
+      base:
+        INFOPLIST_FILE: SysBar/Info.plist
+        CODE_SIGN_ENTITLEMENTS: SysBar/SysBar.entitlements
+        PRODUCT_NAME: SysBar
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        COMBINE_HIDPI_IMAGES: true
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: "0.7.0"
+        GENERATE_INFOPLIST_FILE: false
+        LD_RUNPATH_SEARCH_PATHS:
+          - $(inherited)
+          - "@executable_path/../Frameworks"
