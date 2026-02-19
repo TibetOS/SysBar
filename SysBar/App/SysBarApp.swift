@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct SysBarApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var settings = Settings()
     @State private var store: MetricStore
     @State private var alertService: AlertService
@@ -32,5 +33,11 @@ struct SysBarApp: App {
         SwiftUI.Settings {
             SettingsView()
         }
+    }
+}
+
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
     }
 }
