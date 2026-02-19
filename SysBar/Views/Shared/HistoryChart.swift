@@ -42,7 +42,7 @@ struct HistoryChart: View {
             var path = Path()
             path.move(to: CGPoint(x: 0, y: y))
             path.addLine(to: CGPoint(x: size.width, y: y))
-            context.stroke(path, with: .color(.quaternary), lineWidth: 0.5)
+            context.stroke(path, with: .color(.gray.opacity(0.2)), lineWidth: 0.5)
         }
     }
 
