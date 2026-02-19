@@ -7,64 +7,88 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		06CA05AB5A987CD9ACE42F05 /* SystemMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745A51858A8BB5845BA54986 /* SystemMetrics.swift */; };
-		0A45E0023DB3521CB9BD9FA4 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ACBE514BEA128C3F22FD38D /* AppState.swift */; };
-		0F6E84C73A8E15491D3BA66C /* SparkLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2CCBDCCCC7B6A7E58CC58AA /* SparkLine.swift */; };
-		1368C38AD8E9944E480F521D /* SystemMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A830E1FB9A86332A7311CE /* SystemMonitor.swift */; };
-		2D6F1DFBC94E81BDB2022E33 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 183A93F0B89B8A689338B5C0 /* AboutView.swift */; };
+		14DB5EDFFC4C5AF717D45AAB /* MetricTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F826A778013F15F5B0B53D6F /* MetricTypes.swift */; };
+		1B4AF4D53CB628421B2686C5 /* MenuBarDropdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44CDAD132D5EE7C33ED8F156 /* MenuBarDropdown.swift */; };
+		26F3755B77D85F105871A7C3 /* HistoryChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9B230AAF36C2CAA879414C /* HistoryChart.swift */; };
+		284F1F17E24AD46A89CE102A /* RingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773FAB67F6F550AF1DBA6AE0 /* RingBuffer.swift */; };
+		37139114C3099F10F214BCB1 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142C27E00EC2191B8343EF8F /* Settings.swift */; };
 		3FC6BD2C68D407BEF9E971A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94F4A777770624A7EBECBAD0 /* Assets.xcassets */; };
-		5275CE18716073D23BB9F350 /* MetricRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF3BBD5C735CA96030010222 /* MetricRow.swift */; };
-		5A5F7B901471FD2BDCA8BBDD /* SysBarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0435B2A28823A09CFF094BC6 /* SysBarPanel.swift */; };
-		720E41EEBCBD682AEAFB9646 /* SysBarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3C902159D7BB97BC861E55 /* SysBarApp.swift */; };
+		46A706A3E7025C850016E8F8 /* NetworkSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE7D66759B1874EB69167820 /* NetworkSection.swift */; };
 		78841D58872FF59240797F11 /* DiskAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90BA4AAFAE30E935C7D16F8 /* DiskAnalyzer.swift */; };
 		7B98BD83E7851BF598CB156D /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = E175D46659EF69E577886E2E /* Formatters.swift */; };
-		9DB3D9C5824BE89415E05373 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40846DE5270DFBBEE6680954 /* Preferences.swift */; };
+		88AEBA9867F92E7B4A6E2AE5 /* MetricCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 424B918955AEFA0D1BDEF027 /* MetricCollector.swift */; };
+		99502BB2CB02AE8826EEBAE6 /* SparkLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72547CCA25F70841B654DCD0 /* SparkLine.swift */; };
+		A2338D3E494610505286D8EB /* BatterySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DB758B19CC823F8DE2C7C9 /* BatterySection.swift */; };
+		A3713DB77010D5440F457912 /* DiskSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593CD037C7D5FEB009BFC579 /* DiskSection.swift */; };
+		A6325EC8E606976B10D1C9B9 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F94454E6B2119FE6F925B4 /* DashboardView.swift */; };
+		A8148648DE03B401F373DC9C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39C31F87CE0343DBB1F89E19 /* SettingsView.swift */; };
+		B7F8120F19691BB780AFE413 /* SysBarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A62E15D689D553D15E0FBE /* SysBarApp.swift */; };
+		BB20A28ECAC50F09C6117B44 /* OverviewSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FE3DE64776294E0606D760 /* OverviewSection.swift */; };
+		CFFEABC4D057DDB4EB2CA3D2 /* MemorySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34B1A7B727A35A6601829BD /* MemorySection.swift */; };
 		DB36649D05CF072CF25DAE06 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E37CFEEAC86220953CC21B /* UpdateChecker.swift */; };
-		E6080D7ECEA684F3091B25F8 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A24F8E549EF79F595F2A29 /* SettingsView.swift */; };
-		F22D1D42F1851C578BFBE7C3 /* FloatingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379E45772988130C2D4F1FF8 /* FloatingView.swift */; };
-		F8AB3BDA9892B7D60122AFFC /* FloatingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1725D930D61E3493B10A8BAE /* FloatingPanel.swift */; };
+		E62131A16BD19F4795852335 /* MetricStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24113CD6266393A065660B66 /* MetricStore.swift */; };
+		E85A8C2CACA1F86F63D257E6 /* CPUSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19CA5F05BCC10A50FA8C08CE /* CPUSection.swift */; };
+		EAB9FCAC56AD5200358F7F4E /* UsageBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138890C44C4FF2FEFFAA3A7B /* UsageBar.swift */; };
+		ECBA22144CE22D3E053FDF64 /* MetricCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F31E38483A481C8E2BED702 /* MetricCard.swift */; };
+		ED60F0822BA78A79FBDD204B /* AlertService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D335C63FD4B634C0B71AA2F /* AlertService.swift */; };
+		FA1BBAAC98E6D67FC732BCF4 /* MenuBarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20FDC49201488462E8F120DB /* MenuBarLabel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		02A24F8E549EF79F595F2A29 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		0435B2A28823A09CFF094BC6 /* SysBarPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SysBarPanel.swift; sourceTree = "<group>"; };
-		0ACBE514BEA128C3F22FD38D /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		1725D930D61E3493B10A8BAE /* FloatingPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPanel.swift; sourceTree = "<group>"; };
-		183A93F0B89B8A689338B5C0 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
-		379E45772988130C2D4F1FF8 /* FloatingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingView.swift; sourceTree = "<group>"; };
-		40846DE5270DFBBEE6680954 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
-		745A51858A8BB5845BA54986 /* SystemMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMetrics.swift; sourceTree = "<group>"; };
+		138890C44C4FF2FEFFAA3A7B /* UsageBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageBar.swift; sourceTree = "<group>"; };
+		142C27E00EC2191B8343EF8F /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		19CA5F05BCC10A50FA8C08CE /* CPUSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUSection.swift; sourceTree = "<group>"; };
+		20FDC49201488462E8F120DB /* MenuBarLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLabel.swift; sourceTree = "<group>"; };
+		24113CD6266393A065660B66 /* MetricStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricStore.swift; sourceTree = "<group>"; };
+		2D335C63FD4B634C0B71AA2F /* AlertService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertService.swift; sourceTree = "<group>"; };
+		39C31F87CE0343DBB1F89E19 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		424B918955AEFA0D1BDEF027 /* MetricCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCollector.swift; sourceTree = "<group>"; };
+		44CDAD132D5EE7C33ED8F156 /* MenuBarDropdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarDropdown.swift; sourceTree = "<group>"; };
+		57DB758B19CC823F8DE2C7C9 /* BatterySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatterySection.swift; sourceTree = "<group>"; };
+		593CD037C7D5FEB009BFC579 /* DiskSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskSection.swift; sourceTree = "<group>"; };
+		5F31E38483A481C8E2BED702 /* MetricCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCard.swift; sourceTree = "<group>"; };
+		68FE3DE64776294E0606D760 /* OverviewSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewSection.swift; sourceTree = "<group>"; };
+		72547CCA25F70841B654DCD0 /* SparkLine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkLine.swift; sourceTree = "<group>"; };
+		773FAB67F6F550AF1DBA6AE0 /* RingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingBuffer.swift; sourceTree = "<group>"; };
 		94F4A777770624A7EBECBAD0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A2CCBDCCCC7B6A7E58CC58AA /* SparkLine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkLine.swift; sourceTree = "<group>"; };
+		9F9B230AAF36C2CAA879414C /* HistoryChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryChart.swift; sourceTree = "<group>"; };
+		A34B1A7B727A35A6601829BD /* MemorySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySection.swift; sourceTree = "<group>"; };
 		A9E37CFEEAC86220953CC21B /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
-		B9A830E1FB9A86332A7311CE /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
-		CF3BBD5C735CA96030010222 /* MetricRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricRow.swift; sourceTree = "<group>"; };
-		DA3C902159D7BB97BC861E55 /* SysBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SysBarApp.swift; sourceTree = "<group>"; };
+		D3F94454E6B2119FE6F925B4 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		DE7D66759B1874EB69167820 /* NetworkSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSection.swift; sourceTree = "<group>"; };
 		E01A12ABD30D7A4D3994378E /* SysBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SysBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E175D46659EF69E577886E2E /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		E1D70E39B3272544F57CDD63 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E90BA4AAFAE30E935C7D16F8 /* DiskAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAnalyzer.swift; sourceTree = "<group>"; };
+		F5A62E15D689D553D15E0FBE /* SysBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SysBarApp.swift; sourceTree = "<group>"; };
+		F826A778013F15F5B0B53D6F /* MetricTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricTypes.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		17B69E8528DC8B224D97D756 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				2D335C63FD4B634C0B71AA2F /* AlertService.swift */,
 				E90BA4AAFAE30E935C7D16F8 /* DiskAnalyzer.swift */,
-				B9A830E1FB9A86332A7311CE /* SystemMonitor.swift */,
 				A9E37CFEEAC86220953CC21B /* UpdateChecker.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
 		};
-		5B58B8068B8651680E6E68B1 /* Models */ = {
+		1892B89CE0C1ADB78215A950 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				0ACBE514BEA128C3F22FD38D /* AppState.swift */,
-				40846DE5270DFBBEE6680954 /* Preferences.swift */,
-				745A51858A8BB5845BA54986 /* SystemMetrics.swift */,
+				F5A62E15D689D553D15E0FBE /* SysBarApp.swift */,
 			);
-			path = Models;
+			path = App;
+			sourceTree = "<group>";
+		};
+		1CC2F239B8EE3A850F969DCE /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				39C31F87CE0343DBB1F89E19 /* SettingsView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		92816231573366F375DF84BB /* SysBar */ = {
@@ -72,8 +96,8 @@
 			children = (
 				94F4A777770624A7EBECBAD0 /* Assets.xcassets */,
 				E1D70E39B3272544F57CDD63 /* Info.plist */,
-				DA3C902159D7BB97BC861E55 /* SysBarApp.swift */,
-				5B58B8068B8651680E6E68B1 /* Models */,
+				1892B89CE0C1ADB78215A950 /* App */,
+				B2F9B07F2984FA7410AA3D89 /* Core */,
 				17B69E8528DC8B224D97D756 /* Services */,
 				9705C081479A06181145AD4F /* Utilities */,
 				DD3363D4B4AEDC8CF5A9BE97 /* Views */,
@@ -105,16 +129,59 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		B2F9B07F2984FA7410AA3D89 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				424B918955AEFA0D1BDEF027 /* MetricCollector.swift */,
+				24113CD6266393A065660B66 /* MetricStore.swift */,
+				F826A778013F15F5B0B53D6F /* MetricTypes.swift */,
+				773FAB67F6F550AF1DBA6AE0 /* RingBuffer.swift */,
+				142C27E00EC2191B8343EF8F /* Settings.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		CA41297F6B82D4B165D3840E /* MenuBar */ = {
+			isa = PBXGroup;
+			children = (
+				44CDAD132D5EE7C33ED8F156 /* MenuBarDropdown.swift */,
+				20FDC49201488462E8F120DB /* MenuBarLabel.swift */,
+			);
+			path = MenuBar;
+			sourceTree = "<group>";
+		};
+		CE82C06BD515179421A0D76C /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				9F9B230AAF36C2CAA879414C /* HistoryChart.swift */,
+				5F31E38483A481C8E2BED702 /* MetricCard.swift */,
+				72547CCA25F70841B654DCD0 /* SparkLine.swift */,
+				138890C44C4FF2FEFFAA3A7B /* UsageBar.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		CEF2D218A0A6FC6BB0762D20 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				57DB758B19CC823F8DE2C7C9 /* BatterySection.swift */,
+				19CA5F05BCC10A50FA8C08CE /* CPUSection.swift */,
+				D3F94454E6B2119FE6F925B4 /* DashboardView.swift */,
+				593CD037C7D5FEB009BFC579 /* DiskSection.swift */,
+				A34B1A7B727A35A6601829BD /* MemorySection.swift */,
+				DE7D66759B1874EB69167820 /* NetworkSection.swift */,
+				68FE3DE64776294E0606D760 /* OverviewSection.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
 		DD3363D4B4AEDC8CF5A9BE97 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				183A93F0B89B8A689338B5C0 /* AboutView.swift */,
-				1725D930D61E3493B10A8BAE /* FloatingPanel.swift */,
-				379E45772988130C2D4F1FF8 /* FloatingView.swift */,
-				CF3BBD5C735CA96030010222 /* MetricRow.swift */,
-				02A24F8E549EF79F595F2A29 /* SettingsView.swift */,
-				A2CCBDCCCC7B6A7E58CC58AA /* SparkLine.swift */,
-				0435B2A28823A09CFF094BC6 /* SysBarPanel.swift */,
+				CEF2D218A0A6FC6BB0762D20 /* Dashboard */,
+				CA41297F6B82D4B165D3840E /* MenuBar */,
+				1CC2F239B8EE3A850F969DCE /* Settings */,
+				CE82C06BD515179421A0D76C /* Shared */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -189,21 +256,30 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2D6F1DFBC94E81BDB2022E33 /* AboutView.swift in Sources */,
-				0A45E0023DB3521CB9BD9FA4 /* AppState.swift in Sources */,
+				ED60F0822BA78A79FBDD204B /* AlertService.swift in Sources */,
+				A2338D3E494610505286D8EB /* BatterySection.swift in Sources */,
+				E85A8C2CACA1F86F63D257E6 /* CPUSection.swift in Sources */,
+				A6325EC8E606976B10D1C9B9 /* DashboardView.swift in Sources */,
 				78841D58872FF59240797F11 /* DiskAnalyzer.swift in Sources */,
-				F8AB3BDA9892B7D60122AFFC /* FloatingPanel.swift in Sources */,
-				F22D1D42F1851C578BFBE7C3 /* FloatingView.swift in Sources */,
+				A3713DB77010D5440F457912 /* DiskSection.swift in Sources */,
 				7B98BD83E7851BF598CB156D /* Formatters.swift in Sources */,
-				5275CE18716073D23BB9F350 /* MetricRow.swift in Sources */,
-				9DB3D9C5824BE89415E05373 /* Preferences.swift in Sources */,
-				E6080D7ECEA684F3091B25F8 /* SettingsView.swift in Sources */,
-				0F6E84C73A8E15491D3BA66C /* SparkLine.swift in Sources */,
-				720E41EEBCBD682AEAFB9646 /* SysBarApp.swift in Sources */,
-				5A5F7B901471FD2BDCA8BBDD /* SysBarPanel.swift in Sources */,
-				06CA05AB5A987CD9ACE42F05 /* SystemMetrics.swift in Sources */,
-				1368C38AD8E9944E480F521D /* SystemMonitor.swift in Sources */,
+				26F3755B77D85F105871A7C3 /* HistoryChart.swift in Sources */,
+				CFFEABC4D057DDB4EB2CA3D2 /* MemorySection.swift in Sources */,
+				1B4AF4D53CB628421B2686C5 /* MenuBarDropdown.swift in Sources */,
+				FA1BBAAC98E6D67FC732BCF4 /* MenuBarLabel.swift in Sources */,
+				ECBA22144CE22D3E053FDF64 /* MetricCard.swift in Sources */,
+				88AEBA9867F92E7B4A6E2AE5 /* MetricCollector.swift in Sources */,
+				E62131A16BD19F4795852335 /* MetricStore.swift in Sources */,
+				14DB5EDFFC4C5AF717D45AAB /* MetricTypes.swift in Sources */,
+				46A706A3E7025C850016E8F8 /* NetworkSection.swift in Sources */,
+				BB20A28ECAC50F09C6117B44 /* OverviewSection.swift in Sources */,
+				284F1F17E24AD46A89CE102A /* RingBuffer.swift in Sources */,
+				37139114C3099F10F214BCB1 /* Settings.swift in Sources */,
+				A8148648DE03B401F373DC9C /* SettingsView.swift in Sources */,
+				99502BB2CB02AE8826EEBAE6 /* SparkLine.swift in Sources */,
+				B7F8120F19691BB780AFE413 /* SysBarApp.swift in Sources */,
 				DB36649D05CF072CF25DAE06 /* UpdateChecker.swift in Sources */,
+				EAB9FCAC56AD5200358F7F4E /* UsageBar.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,7 +367,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.8.0;
 				PRODUCT_NAME = SysBar;
 				SDKROOT = macosx;
 			};
@@ -371,7 +447,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.8.0;
 				PRODUCT_NAME = SysBar;
 				SDKROOT = macosx;
 			};
